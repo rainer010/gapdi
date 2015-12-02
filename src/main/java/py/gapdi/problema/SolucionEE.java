@@ -38,7 +38,7 @@ public class SolucionEE implements Solution<Gen>, Comparable<SolucionEE> {
 
     @Override
     public String getVariableValueString(int i) {
-        String r = ""+solucion.getElemento().size();
+        String r = ""+solucion.getElemento().size()+" R:"+solucion.getRepeticiones();
 //        for (int k = 0; k < solucion.geteEstructurante().rows(); k++) {
 //            for (int j = 0; j < solucion.geteEstructurante().cols(); j++) {
 //                r = r + ((int) solucion.geteEstructurante().get(k, j)[0]) + " ";

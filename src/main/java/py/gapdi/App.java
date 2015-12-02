@@ -1,11 +1,8 @@
 package py.gapdi;
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.process.ImageConverter;
-import ij.process.ImageProcessor;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
+import org.opencv.core.*;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import org.uma.jmetal.algorithm.singleobjective.geneticalgorithm.GenerationalGeneticAlgorithm;
 import org.uma.jmetal.operator.SelectionOperator;
 import org.uma.jmetal.operator.impl.selection.BinaryTournamentSelection;
@@ -24,6 +21,9 @@ import java.util.List;
  * Created by rainer on 15/10/2015.
  */
 public class App {
+    private static final Object countLock = new Object();
+    private static int count = 0;
+
     public static void main(String[] args) throws IOException {
 
         if (args.length < 3) {
@@ -45,7 +45,7 @@ public class App {
             numeroMaxIteraciones = 400;
             poblacionIni = 100;
         }
-        System.load(pathLib);
+        System.loadLibrary(pathLib);
         System.out.print("COMENZAR EJECUCION\n");
         System.out.print("PARAMETROS:\n");
         System.out.print("Imagenes de entradas:" + pathDb + "\n");
@@ -71,13 +71,25 @@ public class App {
                 idice--;
                 Thread thread = new Thread("New Thread") {
                     public void run() {
-                        final ImagePlus imp = IJ.openImage(source + file.getName());
+
+                        Mat imagen = Imgcodecs.imread(source + file.getName(),Imgcodecs.IMREAD_GRAYSCALE);
+                        imagen.convertTo(imagen, CvType.CV_8UC1);
+                        Mat res=imagen.clone();
+                        Size s=new Size();
+                        s.height=imagen.size().height*0.5;
+                        s.width=imagen.size().width*0.5;
+                        Imgproc.resize(imagen,res,s);
+
+                        System.out.print(res.type() + "\n");
+                        System.out.print(res.size().width +"\n");
+                        System.out.print(res.size().height +"\n");
+
                         System.out.print(file.getName() + "\n");
                         try {
-                            App.run(imp, out + "/" + file.getName(), numeroMaxIteraciones, poblacionIni);
+                            App.run(res, out + "/" + file.getName(), numeroMaxIteraciones, poblacionIni);
+                            updateCount(-1);
                         } catch (IOException e) {
                             e.printStackTrace();
-                        } finally {
                             updateCount(-1);
                         }
                     }
@@ -88,25 +100,17 @@ public class App {
         }
     }
 
-
-    private static int count = 0;
-    private static final Object countLock = new Object();
-
     public static void updateCount(int num) {
         synchronized (countLock) {
-            count=count+num;
+            count = count + num;
         }
     }
 
 
-    private static void run(ImagePlus imp, String out, int numeroMaxIteraciones, int poblacionIni) throws IOException {
+    private static void run(Mat imp, String out, int numeroMaxIteraciones, int poblacionIni) throws IOException {
 
-        ImageConverter c = new ImageConverter(imp);
-        c.convertToGray8();
-        ImageProcessor p = imp.getProcessor();
-        p.resize(0, 5);
         SelectionOperator<List<SolucionEE>, SolucionEE> selectionOperator = new BinaryTournamentSelection<SolucionEE>();
-        Problema pro = new Problema(p);
+        Problema pro = new Problema(imp);
         GenerationalGeneticAlgorithm<SolucionEE> algorithm = new GenerationalGeneticAlgorithm<SolucionEE>(pro,
                 numeroMaxIteraciones, poblacionIni,
                 new Cruzamiento(), new Mutacion(),
@@ -127,7 +131,7 @@ public class App {
                 .setSeparator("\t")
                 .setFunFileOutputContext(new DefaultFileOutputContext(out + "_INI.tsv"))
                 .print();
-        File fout = new File(out + "_C.txt");
+        File fout = new File(out + "_F.txt");
         if (!fout.exists()) {
             fout.createNewFile();
         }
@@ -137,13 +141,25 @@ public class App {
         Gen resultado = algorithm.getResult().getVariableValue(0);
         Mat ele = OpenCVUtil.reducirMat(OpenCVUtil.convertToElements(resultado.getElemento()));
 
-        bw.write(algorithm.getResult().getObjective(0) + "  -> " + OpenCVUtil.contraste(pro.getImageMat()));
+        bw.write((255-algorithm.getResult().getObjective(0)) + "  -> " + OpenCVUtil.contraste(pro.getImageMat()));
         bw.newLine();
         bw.close();
         ele.release();
+
+        Mat elemento=OpenCVUtil.convertToElements(resultado.getElemento());
+        Imgcodecs.imwrite(out+"_R.png", OpenCVUtil.newMetodo(pro.getImageMat(),elemento
+                , resultado.getRepeticiones()));
+
+        Imgcodecs.imwrite(out+"_S.png", pro.getImageMat());
+
+
+
+        System.out.print(" CANT "+Core.countNonZero(elemento)+"\n");
+        elemento.convertTo(elemento, CvType.CV_8UC3, 255.0);
+        Imgcodecs.imwrite(out+"_E.png", elemento);
+
         JMetalLogger.logger.info("Total execution time: " + computingTime + "ms");
         JMetalLogger.logger.info("Objectives values have been written to file FUN.tsv");
         JMetalLogger.logger.info("Variables values have been written to file VAR.tsv");
-
     }
 }

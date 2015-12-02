@@ -1,6 +1,5 @@
 package py.gapdi.problema;
 
-import ij.process.ImageProcessor;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.uma.jmetal.problem.Problem;
@@ -17,15 +16,17 @@ public class Problema implements Problem<SolucionEE> {
 
     private Mat imageMat;
     private List<SolucionEE> solucionesInicialies = new ArrayList<SolucionEE>();
+
     public List<SolucionEE> getSolucionesInicialies() {
         return solucionesInicialies;
     }
+
     public void setSolucionesInicialies(List<SolucionEE> solucionesInicialies) {
         this.solucionesInicialies = solucionesInicialies;
     }
 
-    public Problema(ImageProcessor imagen) {
-        imageMat = OpenCVUtil.getMatByArray(imagen.getIntArray());
+    public Problema(Mat imagen) {
+        imageMat = imagen;
     }
 
     @Override
@@ -67,7 +68,7 @@ public class Problema implements Problem<SolucionEE> {
             if (l < max) {
                 s.setObjective(0, l);
                 e.setRepeticiones(i);
-                max=l;
+                max = l;
             }
             result.release();
         }
@@ -78,7 +79,7 @@ public class Problema implements Problem<SolucionEE> {
 
     @Override
     public SolucionEE createSolution() {
-        int tamano = randomGenerator.nextInt(100)+1;
+        int tamano = randomGenerator.nextInt(100) + 1;
         SolucionEE s = new SolucionEE();
         s.id = SolucionEE.ids + 1;
         SolucionEE.ids++;

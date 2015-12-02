@@ -15,7 +15,7 @@ public class OpenCVUtil {
     }
 
     public static Mat convertToElements(List<Mat> strels) {
-        if(strels.size()==1){
+        if (strels.size() == 1) {
             return strels.get(0);
         }
         List<Mat> list = new ArrayList<Mat>();
@@ -27,7 +27,7 @@ public class OpenCVUtil {
         list.remove(0);
 //fila 1
         s.put(center - 1, center - 1, primero.get(0, 0));
-        s.put(center , center - 1, primero.get(1, 0));
+        s.put(center, center - 1, primero.get(1, 0));
         s.put(center + 1, center - 1, primero.get(2, 0));
 //fila 2
         s.put(center - 1, center, primero.get(0, 1));
@@ -38,8 +38,12 @@ public class OpenCVUtil {
         s.put(center, center + 1, primero.get(2, 2));
         s.put(center + 1, center + 1, primero.get(2, 2));
 
-        for (Mat strel : list) {
-            Imgproc.dilate(s, s, strel);
+        for (Mat strel : list){
+            Mat n=s.clone();
+            Imgproc.dilate(s, n, strel);
+            Mat stem=s;
+            stem.release();
+            s=n;
         }
         return s;
     }
@@ -74,60 +78,6 @@ public class OpenCVUtil {
         return clon;
     }
 
-
-    private static Mat open(Mat imagen, Mat strel) {
-        Mat result = imagen.clone();
-        Imgproc.morphologyEx(imagen, result, Imgproc.MORPH_OPEN, strel);
-        return result;
-    }
-
-    private static Mat close(Mat imagen, Mat strel) {
-        Mat result = imagen.clone();
-        Imgproc.morphologyEx(imagen, result, Imgproc.MORPH_CLOSE, strel);
-        return result;
-    }
-
-
-    public static Mat getMatByArray(int[] array, int rows, int columns) {
-
-        Mat matObject = new Mat(rows, columns, CvType.CV_8UC1);
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < columns; col++) {
-                matObject.put(row, col, (int) array[row * columns + col]);
-            }
-        }
-        return matObject;
-    }
-
-    public static Mat getMatBinaryByArray(int[] array, int rows, int columns) {
-
-        Mat matObject = new Mat(rows, columns, CvType.CV_8UC1);
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < columns; col++) {
-                matObject.put(row, col, (int) array[row * columns + col]);
-            }
-        }
-        Mat m = new Mat(rows, columns, CvType.CV_8UC1);
-        Core.extractChannel(matObject, m, 0);
-        return m;
-    }
-
-
-    public static Mat getMatByArray(int[][] matrix) {
-
-        Size s = new Size();
-        s.height = matrix.length;
-        s.width = matrix[0].length;
-
-        Mat matObject = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, s);
-
-        for (int row = 0; row < s.height; row++) {
-            for (int col = 0; col < s.width; col++)
-                matObject.put(col, row, matrix[row][col]);
-        }
-        return matObject;
-    }
-
     public static double entropy(Mat m) {
 
         Mat hist = new Mat();
@@ -147,21 +97,6 @@ public class OpenCVUtil {
         }
         hist.release();
         return -1.0 * sum;
-    }
-
-
-    public static int[] getArrayByMat(Mat m) {
-        int[] result = new int[(int) m.total()];
-        int idx = 0;
-        System.out.print("GABM");
-        for (int i = 1; i < m.rows(); i++) {
-            for (int j = 1; j < m.cols(); j++) {
-//                System.out.print(" "+m.get(i,j)[0]);
-                result[idx] = (int) m.get(i, j)[0];
-                idx++;
-            }
-        }
-        return result;
     }
 
 
@@ -200,16 +135,16 @@ public class OpenCVUtil {
 
     public static Mat reducirMat(Mat image) {
 
-        if(image.cols()<=3 || image.rows()<=3){
+        if (image.cols() <= 3 || image.rows() <= 3) {
             return image;
         }
 
 
-        if(Core.countNonZero(image)<3){
+        if (Core.countNonZero(image) < 3) {
             System.out.print("ERROR    \n\n");
-            System.out.print(" "+image.rows()
-                            +"X"+image.cols()+"\n"
-                            );
+            System.out.print(" " + image.rows()
+                    + "X" + image.cols() + "\n"
+            );
 
         }
 
@@ -221,9 +156,9 @@ public class OpenCVUtil {
                 break;
             }
         }
-        anterior=image.submat(0,image.rows()-1, iniC, image.cols()-1);
+        anterior = image.submat(0, image.rows() - 1, iniC, image.cols() - 1);
         image.release();
-        image=anterior.clone();
+        image = anterior.clone();
         anterior.release();
         int finC = -1;
         for (int i = image.cols() - 1; i >= 0; i--) {
@@ -233,9 +168,9 @@ public class OpenCVUtil {
             }
         }
 
-        anterior=image.submat(0,image.rows()-1, 0, finC);
+        anterior = image.submat(0, image.rows() - 1, 0, finC);
         image.release();
-        image=anterior.clone();
+        image = anterior.clone();
         anterior.release();
         int iniF = -1;
         for (int i = 0; i < image.rows(); i++) {
@@ -246,9 +181,9 @@ public class OpenCVUtil {
         }
 
 
-        anterior=image.submat(iniF,image.rows()-1, 0, image.cols()-1);
+        anterior = image.submat(iniF, image.rows() - 1, 0, image.cols() - 1);
         image.release();
-        image=anterior.clone();
+        image = anterior.clone();
         anterior.release();
         int finF = -1;
         for (int i = image.rows() - 1; i >= 0; i--) {
@@ -257,7 +192,7 @@ public class OpenCVUtil {
                 break;
             }
         }
-        anterior=image.submat(0,finF, 0, image.cols()-1);
+        anterior = image.submat(0, finF, 0, image.cols() - 1);
         image.release();
         return anterior.clone();
     }
