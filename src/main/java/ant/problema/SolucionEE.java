@@ -1,6 +1,5 @@
-package py.gapdi.problema;
+package ant.problema;
 
-import org.opencv.core.Mat;
 import org.uma.jmetal.solution.Solution;
 
 /**
@@ -8,22 +7,19 @@ import org.uma.jmetal.solution.Solution;
  */
 public class SolucionEE implements Solution<Gen>, Comparable<SolucionEE> {
 
-    public int id;
     private Gen solucion;
-    private double[] fitness = new double[2];
+    private double[] evaluacion;
+    private double fitness;
 
 
     @Override
     public void setObjective(int i, double v) {
-        this.fitness[i] = v;
+        this.fitness = v;
     }
 
     @Override
     public double getObjective(int i) {
-        if (i > 0) {
-            return id;
-        }
-        return fitness[i];
+        return fitness;
     }
 
     @Override
@@ -38,16 +34,17 @@ public class SolucionEE implements Solution<Gen>, Comparable<SolucionEE> {
 
     @Override
     public String getVariableValueString(int i) {
-        String r = ""+solucion.getElemento().size()+" R:"+solucion.getRepeticiones();
-//        for (int k = 0; k < solucion.geteEstructurante().rows(); k++) {
-//            for (int j = 0; j < solucion.geteEstructurante().cols(); j++) {
-//                r = r + ((int) solucion.geteEstructurante().get(k, j)[0]) + " ";
-//            }
-//            r = r + ";";
-//        }
-//        r = r + "\n==================================";
+        String s = "";
+        solucion.decode();
 
-        return r;
+        s = s + "  ## ";
+        for (int fila = 0; fila < solucion.getFiltro().rows(); fila++) {
+            for (int col = 0; col < solucion.getFiltro().cols(); col++) {
+                s = s + " " + solucion.getFiltro().get(fila, col)[0];
+            }
+            s = s + ";";
+        }
+        return s;
     }
 
     @Override
@@ -57,7 +54,7 @@ public class SolucionEE implements Solution<Gen>, Comparable<SolucionEE> {
 
     @Override
     public int getNumberOfObjectives() {
-        return 2;
+        return 1;
     }
 
     @Override
@@ -81,29 +78,42 @@ public class SolucionEE implements Solution<Gen>, Comparable<SolucionEE> {
 
     protected SolucionEE clone() {
         SolucionEE s = new SolucionEE();
-        s.id=ids+1;
-        ids++;
-        s.setObjective(0, this.fitness[0]);
-        s.setObjective(1, this.fitness[1]);
-        Gen g = new Gen();
-        for (Mat m : solucion.getElemento()) {
-            g.getElemento().add(m.clone());
+        s.setObjective(0, this.fitness);
+        try {
+            s.setSolucion(new Gen(this.solucion.getIndividuo(), solucion.getFilas(), solucion.getColumnas(), solucion.getBitsXValor()));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        g.setRepeticiones(this.solucion.getRepeticiones());
-        s.setVariableValue(0, g);
         return s;
     }
 
-    public static int ids=0;
+    public static int ids = 0;
+
     @Override
     public int compareTo(SolucionEE o) {
-        double l=this.getObjective(0) - o.getObjective(0);
-        if(l>0){
+        double l = this.getObjective(0) - o.getObjective(0);
+        if (l > 0) {
             return 1;
-        }else if(l<0){
+        } else if (l < 0) {
             return -1;
         }
 
         return 0;
+    }
+
+    public double[] getEvaluacion() {
+        return evaluacion;
+    }
+
+    public void setEvaluacion(double[] evaluacion) {
+        this.evaluacion = evaluacion;
+    }
+
+    public Gen getSolucion() {
+        return solucion;
+    }
+
+    public void setSolucion(Gen solucion) {
+        this.solucion = solucion;
     }
 }
