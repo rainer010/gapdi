@@ -130,7 +130,8 @@ public class OpenCVUtil {
 
 //        OpenCVUtil.imprimir(hist);
 
-        double inten_med = Core.mean(imagen).val[0];
+//        double inten_med = Core.mean(imagen).val[0];
+        double inten_med=E(imagen);
         double total = imagen.total();
         double sum = 0;
         for (int i = 0; i < hist.rows(); i++) {
@@ -311,16 +312,17 @@ public class OpenCVUtil {
     }
 
     public static double[] calcularMetrica(Mat src, Mat result) {
-        double contraste = GLCM.calcularContraste(result);
-        double ssim = OpenCVUtil.getMSSIM(src, result);
+//        double contraste = GLCM.calcularContraste(result);
+        double contrasteG=OpenCVUtil.contraste(result);
+//        double ssim = OpenCVUtil.getMSSIM(src, result);
 //        double entropy=entropy(result);
 //        double ambe=AMBE(src,result);
 //        return 1 - Math.abs((ambe) + (ssim ));
 
         double[] r = new double[3];
-        r[0] = (1- (contraste +ssim)/2);
-        r[1] = ssim;
-        r[2] = contraste*(7^2);
+        r[0] = (1- (contrasteG ));
+        r[1] = 0;
+        r[2] = contrasteG*127;
         return r;
     }
 
