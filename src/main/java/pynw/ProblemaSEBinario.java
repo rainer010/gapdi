@@ -19,9 +19,12 @@ public class ProblemaSEBinario extends AbstractBinaryProblem {
     private int dimF = 11;
     //columnas numero de columnas del cuadrante nro impar
     private int dimC = 11;
-
+private double CS;
     public ProblemaSEBinario(Mat imagen) {
         this.imagen = imagen;
+        CS=OpenCVUtil.contraste(imagen);
+
+
     }
 
     int sol = 0;
@@ -88,7 +91,7 @@ public class ProblemaSEBinario extends AbstractBinaryProblem {
         } catch (Exception e) {
             System.out.print("ERROR " + e + "\n");
         }
-        double[] e = OpenCVUtil.calcularMetrica(imagen, act);
+        double[] e = OpenCVUtil.calcularMetrica(imagen, act,CS);
         act.release();
         solucion.setObjective(0, e[0]);
         solucion.setEvaluacion(e);

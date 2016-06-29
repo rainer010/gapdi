@@ -12,6 +12,7 @@ import org.uma.jmetal.operator.impl.mutation.BitFlipMutation;
 import org.uma.jmetal.solution.BinarySolution;
 import org.uma.jmetal.util.AlgorithmRunner;
 import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
+import py.gapdi.OpenCVUtil;
 import py.gapdi.helper.HOpencv;
 
 import java.io.File;
@@ -29,12 +30,29 @@ public class Run {
     public static SinglePointCrossover crozz = new SinglePointCrossover(P_CRUZAMIENTO);
     public static BitFlipMutation mutation = new BitFlipMutation(P_MUTACION);
 
+    public static PrintWriter reporteTotal;
 
     public static void main(String[] args) throws IOException {
         System.loadLibrary("opencv_java300");
-        for (int i = 2; i <= 2; i++) {
-            excecuteInDir("db2/", "result/" + "test/" + i, 500*40, 40, 11, 11);
+        File salidaF = new File("result/test/todos.txt");
+        File dir= new File("result/test/");
+        dir.mkdirs();
+
+        if (!salidaF.exists()) {
+            salidaF.createNewFile();
         }
+        final FileWriter fw = new FileWriter(salidaF, true);
+        reporteTotal = new PrintWriter(fw);
+
+
+        reporteTotal.print("Imagen\t;Fitness\t;SSIM\t;C Metodo\t;C Original\n");
+        reporteTotal.flush();
+        for (int i = 2; i <= 2; i++) {
+            excecuteInDir("db2/", "result/" + "test/" + i, 800*40, 40, 13, 13);
+        }
+        reporteTotal.close();
+        fw.close();
+
     }
 
     private static void excecuteInDir(final String source, final String out,
@@ -80,6 +98,9 @@ public class Run {
         }
         final FileWriter fw = new FileWriter(salidaF, true);
         final PrintWriter pw = new PrintWriter(fw);
+
+
+
         pw.print("Fitness\tSSIM\tCONSTRASTE\n");
         GenerationalGeneticAlgorithm<BinarySolution> algorithm = new GenerationalGeneticAlgorithm<BinarySolution>(pro,
                 numeroMaxIteraciones, tamanhoPoblacion, crozz, mutation,
@@ -94,11 +115,12 @@ public class Run {
                         "\t" + s.getEvaluacion()[2] + "\n";
                 rS = rS.replace(".", ",");
                 pw.print(rS);
+
+//                System.out.print("  "+rS+"\n");
             }
 
 
         };
-
 
         AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm)
                 .execute();
@@ -108,6 +130,20 @@ public class Run {
 
         Mat se = pro.convertToMat(s.getSolucion());
         Imgcodecs.imwrite(out + "/" + filename, HOpencv.newMetodo_Binario_OCV(imp, se));
+
+
+
+        //#############################################
+
+
+        String rS = ""+ s.getObjective(0) + "\t;" + s.getEvaluacion()[1] +
+                "\t;" + s.getEvaluacion()[2] +"\t;"+OpenCVUtil.contraste(imp)+ "\n";
+        rS = rS.replace(".", ",");
+        rS =filename+"\t"+rS;
+        reporteTotal.print(rS);
+        reporteTotal.flush();
+        //#############################################
+
 
         se.convertTo(se, 0, 255.0);
         new File(out + "/se/").mkdirs();

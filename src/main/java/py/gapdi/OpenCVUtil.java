@@ -314,15 +314,16 @@ public class OpenCVUtil {
     public static double[] calcularMetrica(Mat src, Mat result) {
 //        double contraste = GLCM.calcularContraste(result);
         double contrasteG=OpenCVUtil.contraste(result);
-//        double ssim = OpenCVUtil.getMSSIM(src, result);
+        double ssim = OpenCVUtil.getMSSIM(src, result);
 //        double entropy=entropy(result);
 //        double ambe=AMBE(src,result);
 //        return 1 - Math.abs((ambe) + (ssim ));
 
         double[] r = new double[3];
-        r[0] = (1- (contrasteG ));
-        r[1] = 0;
+        r[0] = (1- (contrasteG +ssim )/2);
+        r[1] = ssim;
         r[2] = contrasteG*127;
+
         return r;
     }
 
@@ -507,5 +508,25 @@ public class OpenCVUtil {
         return result;
     }
 
+    public static double[] calcularMetrica(Mat src, Mat result,double contrasteS) {
+//        double contraste = GLCM.calcularContraste(result);
+        double contrasteG=OpenCVUtil.contraste(result);
+        double ssim = OpenCVUtil.getMSSIM(src, result);
+//        double entropy=entropy(result);
+//        double ambe=AMBE(src,result);
+//        return 1 - Math.abs((ambe) + (ssim ));
 
+        double deltaC=contrasteG-contrasteS;
+        double resultado=1;
+        if(deltaC>0){
+            resultado=1-(ssim+deltaC)/2;
+        }
+        double[] r = new double[3];
+        r[0] = resultado;
+        r[1] = ssim;
+        r[2] = contrasteG*127;
+
+        return r;
+    }
 }
+
