@@ -6,6 +6,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAII;
 import org.uma.jmetal.algorithm.singleobjective.geneticalgorithm.GenerationalGeneticAlgorithm;
 import org.uma.jmetal.operator.impl.crossover.SinglePointCrossover;
 import org.uma.jmetal.operator.impl.mutation.BitFlipMutation;
@@ -102,6 +103,9 @@ public class Run {
 
 
         pw.print("Fitness\tSSIM\tCONSTRASTE\n");
+
+
+
         GenerationalGeneticAlgorithm<BinarySolution> algorithm = new GenerationalGeneticAlgorithm<BinarySolution>(pro,
                 numeroMaxIteraciones, tamanhoPoblacion, crozz, mutation,
                 new org.uma.jmetal.operator.impl.selection.BinaryTournamentSelection<BinarySolution>(),
